@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Minimal dotfiles manager built on GNU Stow.
+# All tracked config lives under home/ and is symlinked into $HOME.
+set -euo pipefail
+
+DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PKG="home"
+
+need_stow() {
+  command -v stow >/dev/null 2>&1 || {
+    echo "GNU Stow is required. Install it (e.g. 'sudo pacman -S stow') and retry." >&2
+    exit 1
+  }
+}
+
+cmd="${1:-help}"
+case "$cmd" in
+  # Create the symlinks ($HOME <- home/). --restow is safe to run repeatedly.
+  stow|init)
+    need_stow
+    stow --dir="$DOTFILES" --target="$HOME" --restow "$PKG"
+    echo "Stowed $PKG -> $HOME"
+    ;;
+  # Pull pre-existing real files into the repo, replacing them with symlinks.
+  # Use this the first time to "adopt" an existing ~/.config/nvim etc.
+  adopt)
+    need_stow
+    stow --dir="$DOTFILES" --target="$HOME" --adopt "$PKG"
+    echo "Adopted existing files into $PKG. Review 'git diff' before committing."
+    ;;
+  # Remove the symlinks.
+  unstow|delete)
+    need_stow
+    stow --dir="$DOTFILES" --target="$HOME" --delete "$PKG"
+    echo "Unstowed $PKG"
+    ;;
+  *)
+    cat <<EOF
+usage: ./dot <command>
+
+  init / stow   create symlinks from home/ into \$HOME
+  adopt         absorb existing real files into the repo, then symlink them
+  unstow        remove the symlinks
+EOF
+    ;;
+esac

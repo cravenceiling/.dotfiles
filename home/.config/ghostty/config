@@ -1,0 +1,67 @@
+font-family = Fira Code
+font-size = 14.0
+background = #0E0A00
+#adjust-cursor-thickness = 14
+cursor-style = block
+#theme = light:rose-pine-dawn,dark:rose-pine 
+window-theme = dark
+background-opacity = 0.9
+#0.9
+window-decoration = false
+shell-integration-features = no-cursor
+shell-integration = detect
+window-padding-balance = true
+window-padding-color = background
+font-feature = -calt
+font-feature = -liga
+font-feature = -dlig
+minimum-contrast = 1
+bold-is-bright = true
+#theme = Monokai Vivid
+cursor-style-blink = true
+cursor-color = #FFFFFF
+
+#: The 256 terminal colors. There are 8 basic colors, each color has a
+#: dull and bright version, for the first 16 colors. You can set the
+#: remaining 240 colors as color16 to color255.
+
+palette = 0=#000000
+palette = 8=#767676
+
+term = xterm-256color
+
+
+#: black
+
+palette = 1=#cc0403
+palette = 9=#f2201f
+
+#: red
+
+palette = 2=#19cb00
+palette = 10=#23fd00
+
+#: green
+
+palette = 3=#cecb00
+palette = 11=#fffd00
+
+#: yellow
+
+palette = 4=#0d73cc
+palette = 12=#1a8fff
+
+#: blue
+
+palette = 5=#cb1ed1
+palette = 13=#fd28ff
+
+#: magenta
+
+palette = 6=#0dcdcd
+palette = 14=#14ffff
+
+#: cyan
+
+palette = 7=#dddddd
+palette = 15=#ffffff

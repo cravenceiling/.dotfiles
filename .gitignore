@@ -1,0 +1,6 @@
+# OS / editor cruft
+.DS_Store
+*.swp
+
+# Files Stow absorbs but you may not want to track
+home/.config/nvim/.netrwhist
