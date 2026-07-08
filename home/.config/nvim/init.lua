@@ -271,12 +271,6 @@ require('lazy').setup({
     end,
   },
   {
-    'supermaven-inc/supermaven-nvim',
-    config = function()
-      require('supermaven-nvim').setup {}
-    end,
-  },
-  {
     'ThePrimeagen/harpoon',
     branch = 'harpoon2',
     dependencies = { 'nvim-lua/plenary.nvim' },
@@ -741,7 +735,7 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         -- clangd = {},
-        gopls = {},
+        -- gopls = {},
         -- pyright = {},
         rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -1009,6 +1003,7 @@ require('lazy').setup({
   },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
+    branch = 'master', -- Pin to the legacy API; `main` branch removed nvim-treesitter.configs
     build = ':TSUpdate',
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
@@ -1041,6 +1036,70 @@ require('lazy').setup({
       },
       indent = { enable = true, disable = { 'ruby' } },
     },
+    config = function(_, opts)
+      require('nvim-treesitter.configs').setup(opts)
+
+      local query = require 'vim.treesitter.query'
+      local directive_opts = vim.fn.has 'nvim-0.10' == 1 and { force = true, all = false } or true
+      local html_script_type_languages = {
+        importmap = 'json',
+        module = 'javascript',
+        ['application/ecmascript'] = 'javascript',
+        ['text/ecmascript'] = 'javascript',
+      }
+      local markdown_info_string_aliases = {
+        ex = 'elixir',
+        pl = 'perl',
+        sh = 'bash',
+        ts = 'typescript',
+        uxn = 'uxntal',
+      }
+
+      -- nvim-treesitter's legacy directives expect one node per capture;
+      -- Neovim 0.12 passes node lists.
+      local function capture_node(match, capture_id)
+        local node = match[capture_id]
+        if type(node) == 'table' then
+          return node[1]
+        end
+        return node
+      end
+
+      query.add_directive('set-lang-from-info-string!', function(match, _, bufnr, pred, metadata)
+        local node = capture_node(match, pred[2])
+        if not node then
+          return
+        end
+
+        local injection_alias = vim.treesitter.get_node_text(node, bufnr):lower()
+        metadata['injection.language'] = vim.filetype.match { filename = 'a.' .. injection_alias }
+          or markdown_info_string_aliases[injection_alias]
+          or injection_alias
+      end, directive_opts)
+
+      query.add_directive('set-lang-from-mimetype!', function(match, _, bufnr, pred, metadata)
+        local node = capture_node(match, pred[2])
+        if not node then
+          return
+        end
+
+        local type_attr_value = vim.treesitter.get_node_text(node, bufnr)
+        local parts = vim.split(type_attr_value, '/', {})
+        metadata['injection.language'] = html_script_type_languages[type_attr_value] or parts[#parts]
+      end, directive_opts)
+
+      query.add_directive('downcase!', function(match, _, bufnr, pred, metadata)
+        local id = pred[2]
+        local node = capture_node(match, id)
+        if not node then
+          return
+        end
+
+        metadata[id] = metadata[id] or {}
+        local text = vim.treesitter.get_node_text(node, bufnr, { metadata = metadata[id] }) or ''
+        metadata[id].text = string.lower(text)
+      end, directive_opts)
+    end,
     -- There are additional nvim-treesitter modules that you can use to interact
     -- with nvim-treesitter. You should go explore a few and see what interests you:
     --
